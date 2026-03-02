@@ -70,10 +70,15 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, gm *GameManager) {
 	switch playerColor {
 	case ColorWhite:
 		session.Players[0] = pc
+		// If black is already connected, start the timer
+		if session.Players[1] != nil && session.LastMoveAt.IsZero() {
+			session.LastMoveAt = time.Now()
+			go session.StartTimerTicker()
+		}
 	case ColorBlack:
 		session.Players[1] = pc
-		// Both players connected — start the game timer
-		if session.Players[0] != nil {
+		// If white is already connected, start the timer
+		if session.Players[0] != nil && session.LastMoveAt.IsZero() {
 			session.LastMoveAt = time.Now()
 			go session.StartTimerTicker()
 		}

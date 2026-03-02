@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Game from './pages/Game';
-import { matchmake, getGameStatus } from './services/api';
+import { matchmake, getGameStatus, cancelMatchmake } from './services/api';
 import './index.css';
 
 type View = 'lobby' | 'searching' | 'game';
@@ -58,6 +58,10 @@ function App() {
 
   const handleCancel = () => {
     clearPoll();
+    // Tell backend to remove game from the matchmaking queue
+    if (gameId) {
+      cancelMatchmake(gameId).catch(() => { });
+    }
     setView('lobby');
     setGameId('');
     setPlayerColor('');

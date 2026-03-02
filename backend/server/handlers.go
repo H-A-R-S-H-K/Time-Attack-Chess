@@ -18,6 +18,7 @@ func RegisterHandlers(mux *http.ServeMux, gm *GameManager) {
 	mux.HandleFunc("/api/game/create", corsMiddleware(handleCreateGame(gm)))
 	mux.HandleFunc("/api/game/join", corsMiddleware(handleJoinGame(gm)))
 	mux.HandleFunc("/api/matchmake", corsMiddleware(handleMatchmake(gm)))
+	mux.HandleFunc("/api/matchmake/cancel", corsMiddleware(handleCancelMatchmake(gm)))
 	mux.HandleFunc("/api/game/status/", corsMiddleware(handleGameStatus(gm)))
 	mux.HandleFunc("/api/game/", corsMiddleware(handleGetGame(gm)))
 }
@@ -205,5 +206,29 @@ func handleGameStatus(gm *GameManager) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
+	}
+}
+
+func handleCancelMatchmake(gm *GameManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req struct {
+			GameID string `json:"gameId"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.GameID == "" {
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+
+		gm.CancelMatchmake(req.GameID)
+
+		log.Printf("Matchmake cancelled: game=%s", req.GameID)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"ok":true}`))
 	}
 }

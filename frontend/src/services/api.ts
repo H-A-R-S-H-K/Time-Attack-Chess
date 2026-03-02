@@ -85,6 +85,14 @@ export async function getGameStatus(gameId: string): Promise<GameStatusResponse>
   return res.json();
 }
 
+export async function cancelMatchmake(gameId: string): Promise<void> {
+  await fetch(`${API_BASE}/matchmake/cancel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gameId }),
+  });
+}
+
 export async function getGame(gameId: string): Promise<GameStateResponse> {
   const res = await fetch(`${API_BASE}/game/${gameId}`);
   if (!res.ok) throw new Error('Failed to get game');

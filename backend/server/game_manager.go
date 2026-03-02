@@ -259,6 +259,22 @@ func (gm *GameManager) Matchmake(timeMs int64) (*GameSession, string, string) {
 	return session, "white", "waiting"
 }
 
+// CancelMatchmake removes a game from the matchmaking queue.
+func (gm *GameManager) CancelMatchmake(gameID string) bool {
+	gm.mu.Lock()
+	defer gm.mu.Unlock()
+
+	for i, session := range gm.waitQueue {
+		if session.ID == gameID {
+			gm.waitQueue = append(gm.waitQueue[:i], gm.waitQueue[i+1:]...)
+			// Also remove the game entirely so it can't be joined
+			delete(gm.games, gameID)
+			return true
+		}
+	}
+	return false
+}
+
 // BuildGameStateResponse converts internal state to JSON-friendly format.
 func BuildGameStateResponse(gs *game.GameState, lastFrom, lastTo int) GameStateResponse {
 	var board [64]SquareInfo
